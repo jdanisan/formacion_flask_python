@@ -78,39 +78,45 @@
           <button type="submit">Buscar</button>
         </form>
       </div>
-
-
-
+      <h1>Precios agrícolas (scrapeados)</h1>
+      {% for item in productos %}
+      <p>
+        <strong>{{ item.producto }}</strong> | Semana: {{ item.semana }} |
+        Precio: {{ item.precio }} €
+      </p>
+      {% endfor %}
       <!-- Mostrar la tabla de precios y semanas -->
-    {% if products %}
+      {% if productos %}
       <table>
-        <tr>
-          <th>Producto</th>
-          <th>Semana</th>
-          <th>Precio</th>
-        </tr>
-
-        {% for product in products %}
-            {% for i in range(leprecios_agro) %}
-                <tr>
-                    <td>{{ semanas[i][0] if semanas[i] }}</td>
-                    <td>{{ precios_agro[i][0] if precios_agro[i] }}</td>
-                    <td>products</td>
-                </tr>
-
-            {% endfor %}
-        {% endfor %}
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Semana</th>
+            <th>Precio</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in productos %}
+          <tr>
+            <td>{{ p.Producto }}</td>
+            <td>{{ p.Semana }}</td>
+            <td>{{ p.Precio }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
       </table>
-    {% else %}
+      {% else %}
       <p>No hay datos disponibles</p>
       <table>
-        <tr>
-          <th>Producto</th>
-          <th>Semana</th>
-          <th>Precio</th>
-        </tr>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Semana</th>
+            <th>Precio</th>
+          </tr>
+        </thead>
       </table>
-    {% endif %}
+      {% endif %}
     </div>
   </body>
 </html>

@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, redirect, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -64,51 +65,97 @@ def update(id):
         return render_template('update.html', task=task)
 
 # Función que hace web scraping y obtiene los datos agrícolas
+#def obtener_datos_agricolas():
+#    url = "https://observatorioprecios.es/alimentos-frescos/"  # URL para scraping
+#
+#    response = requests.get(url)
+#    response.raise_for_status()     
+#    soup = BeautifulSoup(response.text, 'html.parser')    
+#    product_refs = soup.find_all("p")
+#    products = []
+#    seleccion=["patata","acelga","calabacin","cebolla","judia-verde-plana","lechuga-romana","pimiento-verde",
+#               "tomate-redondo-liso","zanahoria","limon","manzana-golden","clementina",
+#               "naranja-tipo-navel","pera-de-agua-o-blanquilla","platano"]
+#    
+#    for p in product_refs:
+#        try:
+#            t = p.find_all("a")[0]["href"].split("/")[2]
+#            for i in range(len(seleccion)):
+#                if seleccion[i]==t: 
+#                    products.append(t)
+#        except:
+#            pass
+#    #products.pop(-1)
+#    
+#    #precios_agro=[]
+#    #semanas=[]
+#    #columns=[]
+#    #n=0
+#    #for i in range(len(products)):
+#    #    product_url=f"{url}/{products[i]}"
+#    #    table = BeautifulSoup(requests.get(product_url).text, 'html.parser').find_all("table")
+#    #    columns=table[0].find_all("th")
+#    #    if len(columns)>2:
+#    #        for n in range(len(seleccion)):
+#    #            #print(seleccion[n])
+#    #            for t in table[0]:
+#    #                try:
+#    #                    for i in range(1,len(t),3):
+#    #                        t2 = t.find_all("td")[i]
+#    #                        precios_agro.append(t2.contents)
+##
+#    #                    for i2 in range(0,len(t),3):
+#    #                        t3= t.find_all("td")[i2]
+#    #                        semanas.append(t3.contents)    
+#    #                except:
+#    #                    
+#    
+#    precios_agro=[]
+#    semanas=[]
+#    columns=[]
+#    n=0
+#    for i in range(len(products)):
+#        product_url=f"{url}/{products[i]}"
+#        table = BeautifulSoup(requests.get(product_url).text, 'html.parser').find_all("table")
+#        columns=table[0].find_all("th")
+#        if len(columns)>2:
+#            for n in range(len(seleccion)):
+#                print(seleccion[n])
+#                for t in table[0]:
+#                    try:
+#                        for i in range(1,len(t),3):
+#                            t2 = t.find_all("td")[i]
+#                            precios_agro.append(t2.contents)
+#
+#                        for i2 in range(0,len(t),3):
+#                            t3= t.find_all("td")[i2]
+#                            semanas.append(t3.contents)    
+#                    except:
+#                        pass
+                    
 def obtener_datos_agricolas():
-    url = "https://observatorioprecios.es/alimentos-frescos/"  # URL para scraping
-
+    url = "https://observatorioprecios.es/alimentos-frescos/"
     response = requests.get(url)
-    response.raise_for_status()     
-    soup = BeautifulSoup(response.text, 'html.parser')    
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, 'html.parser')
+    
     product_refs = soup.find_all("p")
     products = []
-    seleccion=["patata","acelga","calabacin","cebolla","judia-verde-plana","lechuga-romana","pimiento-verde",
-               "tomate-redondo-liso","zanahoria","limon","manzana-golden","clementina",
-               "naranja-tipo-navel","pera-de-agua-o-blanquilla","platano"]
+    seleccion = [
+        "patata", "acelga", "calabacin", "cebolla", "judia-verde-plana", "lechuga-romana",
+        "pimiento-verde", "tomate-redondo-liso", "zanahoria", "limon", "manzana-golden",
+        "clementina", "naranja-tipo-navel", "pera-de-agua-o-blanquilla", "platano"
+    ]
     
+    # Extraer enlaces válidos de productos
     for p in product_refs:
         try:
             t = p.find_all("a")[0]["href"].split("/")[2]
-            for i in range(len(seleccion)):
-                if seleccion[i]==t: 
-                    products.append(t)
+            if t in seleccion:
+                products.append(t)
         except:
             pass
-    #products.pop(-1)
-    
-    #precios_agro=[]
-    #semanas=[]
-    #columns=[]
-    #n=0
-    #for i in range(len(products)):
-    #    product_url=f"{url}/{products[i]}"
-    #    table = BeautifulSoup(requests.get(product_url).text, 'html.parser').find_all("table")
-    #    columns=table[0].find_all("th")
-    #    if len(columns)>2:
-    #        for n in range(len(seleccion)):
-    #            #print(seleccion[n])
-    #            for t in table[0]:
-    #                try:
-    #                    for i in range(1,len(t),3):
-    #                        t2 = t.find_all("td")[i]
-    #                        precios_agro.append(t2.contents)
-#
-    #                    for i2 in range(0,len(t),3):
-    #                        t3= t.find_all("td")[i2]
-    #                        semanas.append(t3.contents)    
-    #                except:
-    #                    
-    
+
     precios_agro=[]
     semanas=[]
     columns=[]
@@ -125,14 +172,23 @@ def obtener_datos_agricolas():
                         for i in range(1,len(t),3):
                             t2 = t.find_all("td")[i]
                             precios_agro.append(t2.contents)
+                            #print(precios_agro)
+                            #print("hola")
+                            print(seleccion[n])
 
                         for i2 in range(0,len(t),3):
                             t3= t.find_all("td")[i2]
-                            semanas.append(t3.contents)    
+                            semanas.append(t3.contents)
+                            print(semanas)  
+                            print(seleccion[n])  
                     except:
                         pass
                     
-   
+    print(precios_agro)
+    print(semanas)
+
+    return precios_agro,semanas
+  
     
                 
 
