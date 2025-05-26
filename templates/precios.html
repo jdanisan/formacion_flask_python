@@ -1,122 +1,91 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Precios Agrícolas</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f4;
-      }
-      .container {
-        width: 80%;
-        margin: auto;
-        overflow: hidden;
-      }
-      h1 {
-        color: #333;
-      }
-      .search-form {
-        margin-bottom: 20px;
-      }
-      .search-form input {
-        padding: 8px;
-        width: 300px;
-        margin-right: 10px;
-      }
-      .search-form button {
-        padding: 8px;
-      }
-      .product-list {
-        margin-top: 20px;
-      }
-      .product-item {
-        background: #fff;
-        padding: 10px;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      }
-      .product-item h3 {
-        margin: 0;
-        font-size: 18px;
-      }
-      .product-item p {
-        margin: 5px 0;
-      }
-      table {
-        width: 100%;
-        margin-top: 20px;
-        border-collapse: collapse;
-      }
-      th,
-      td {
-        padding: 8px;
-        text-align: center;
-        border: 1px solid #ddd;
-      }
-      th {
-        background-color: #f2f2f2;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Precios Agrícolas</h1>
-      <!-- Formulario de búsqueda -->
-      <div class="search-form">
-        <form action="/precios" method="GET">
-          <input
-            type="text"
-            name="producto"
-            placeholder="Buscar producto"
-            value="{{ request.args.get('producto', '') }}"
-          />
-          <button type="submit">Buscar</button>
-        </form>
-      </div>
-      <h1>Precios agrícolas (scrapeados)</h1>
-      {% for item in productos %}
-      <p>
-        <strong>{{ item.producto }}</strong> | Semana: {{ item.semana }} |
-        Precio: {{ item.precio }} €
-      </p>
-      {% endfor %}
-      <!-- Mostrar la tabla de precios y semanas -->
-      {% if productos %}
-      <table>
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Semana</th>
-            <th>Precio</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in productos %}
-          <tr>
-            <td>{{ p.Producto }}</td>
-            <td>{{ p.Semana }}</td>
-            <td>{{ p.Precio }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p>No hay datos disponibles</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Semana</th>
-            <th>Precio</th>
-          </tr>
-        </thead>
-      </table>
-      {% endif %}
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Precios Agrícolas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      max-width: 960px;
+      margin: auto;
+    }
+    h1 {
+      color: #333;
+    }
+    .search-form {
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+    }
+    .product-item {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Precios Agrícolas</h1>
+
+    <!-- Buscador -->
+    <div class="search-form">
+      <form action="/precios" method="GET">
+        <input type="text" name="producto" placeholder="Buscar producto" value="{{ request.args.get('producto', '') }}">
+        <button type="submit">Buscar</button>
+      </form>
     </div>
-  </body>
+
+    {% if mensaje %}
+      <p><strong>{{ mensaje }}</strong></p>
+    {% endif %}
+
+    {% for producto in productos %}
+      <div class="product-item">
+        <h2>{{ producto.Producto | capitalize }}</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Semana</th>
+              <th>Precio Produtcor(€)</th>
+              <th>Precio Mercado (€)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in range(0, producto.Precios|length, 2) %}
+              <tr>
+                <td>{{ producto.Semanas[i // 2] }}</td>
+                <td>{{ producto.Precios[i] }}</td>
+                <td>{{ producto.Precios[i + 1] }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+    {% endfor %}
+  </div>
+</body>
 </html>

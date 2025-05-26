@@ -132,62 +132,132 @@ def update(id):
 #                            semanas.append(t3.contents)    
 #                    except:
 #                        pass
+import re
+def formatear_semana(texto):
+    num_semana = re.search(r'(\d+)', texto)
+    anio = re.search(r'(20\d{2})', texto)
+
+    if num_semana and anio:
+        return f"{num_semana.group(1)}ª semana de {anio.group(1)}"
+    else:
+        return None  # Indicar que no es válido      
                     
 def obtener_datos_agricolas():
-    url = "https://observatorioprecios.es/alimentos-frescos/"
-    response = requests.get(url)
+    url_base = "https://observatorioprecios.es/alimentos-frescos"
+    response = requests.get(url_base)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
-    
-    product_refs = soup.find_all("p")
-    products = []
+
     seleccion = [
         "patata", "acelga", "calabacin", "cebolla", "judia-verde-plana", "lechuga-romana",
         "pimiento-verde", "tomate-redondo-liso", "zanahoria", "limon", "manzana-golden",
         "clementina", "naranja-tipo-navel", "pera-de-agua-o-blanquilla", "platano"
     ]
-    
-    # Extraer enlaces válidos de productos
-    for p in product_refs:
+
+    productos_encontrados = []
+    mapa_agricola = {}
+    contador = 0
+
+    # Buscar enlaces válidos
+    for p in soup.find_all("p"):
         try:
-            t = p.find_all("a")[0]["href"].split("/")[2]
-            if t in seleccion:
-                products.append(t)
-        except:
-            pass
+            href = p.find("a")["href"]
+            producto = href.split("/")[2]
+            if producto in seleccion and producto not in productos_encontrados:
+                productos_encontrados.append(producto)
+        except Exception:
+            continue
 
-    precios_agro=[]
-    semanas=[]
-    columns=[]
-    n=0
-    for i in range(len(products)):
-        product_url=f"{url}/{products[i]}"
-        table = BeautifulSoup(requests.get(product_url).text, 'html.parser').find_all("table")
-        columns=table[0].find_all("th")
-        if len(columns)>2:
-            for n in range(len(seleccion)):
-                print(seleccion[n])
-                for t in table[0]:
-                    try:
-                        for i in range(1,len(t),3):
-                            t2 = t.find_all("td")[i]
-                            precios_agro.append(t2.contents)
-                            #print(precios_agro)
-                            #print("hola")
-                            print(seleccion[n])
+    # Recorrer productos encontrados
+    for producto in productos_encontrados:
+        if contador >= 15:
+            break
 
-                        for i2 in range(0,len(t),3):
-                            t3= t.find_all("td")[i2]
-                            semanas.append(t3.contents)
-                            print(semanas)  
-                            print(seleccion[n])  
-                    except:
-                        pass
+        semanas = []
+        precios = []
+        #print(f"Procesando producto: {producto}")
+
+        try:
+            url_producto = f"{url_base}/{producto}"
+            response_prod = requests.get(url_producto)
+            response_prod.raise_for_status()
+            soup_prod = BeautifulSoup(response_prod.text, 'html.parser')
+            tablas = soup_prod.find_all("table")
+
+            if tablas:
+                tabla = tablas[0]
+                columnas = tabla.find_all("th")
+                #print("hola2")
+
+                # Si hay más de 2 columnas usamos el método extendido
+                if len(columnas) ==3:
                     
-    print(precios_agro)
-    print(semanas)
+                     # Modo alternativo (cuando las celdas <td> están sin <tr>)
+                    celdas = tabla.find_all("td")
+                    datos_limpios = [celda.get_text(strip=True) for celda in celdas if celda.get_text(strip=True)]
 
-    return precios_agro,semanas
+                    for i in range(0, len(datos_limpios) - 2, 3):
+                        valor1 = datos_limpios[i]
+                        valor2 = datos_limpios[i +1]
+                        valor3 = datos_limpios[i + 2]
+
+                        if "semana" in valor1.lower():
+                            semana = formatear_semana(valor1)
+                            precio = valor2
+                            precio_m= valor3
+                        else:
+                            semana = formatear_semana(valor2)
+                            precio = valor1
+                            precio_m=valor3
+
+                        if not (semana.__eq__("None")):
+                            semanas.append(semana)
+                        #print (semana)
+                        precios.append(precio)
+                        precios.append(precio_m)
+                        i=i+1
+                else:
+                    # Modo alternativo (cuando las celdas <td> están sin <tr>)
+                    celdas = tabla.find_all("td")
+                    datos_limpios = [celda.get_text(strip=True) for celda in celdas if celda.get_text(strip=True)]
+
+                    for i in range(0, len(datos_limpios) - 1, 2):
+                        valor1 = datos_limpios[i]
+                        valor2 = datos_limpios[i + 1]
+                        
+
+                        if "semana" in valor1.lower():
+                            semana = valor1
+                            precio = valor2     
+                        else:
+                            semana = valor2
+                            precio = valor1    
+
+                        semanas.append(semana)
+                        precios.append(precio)  
+            else:
+                print(f"No se encontró tabla para {producto}")
+
+            mapa_agricola[producto] = {
+                "Producto": producto,
+                "Semanas": semanas,
+                "Precios": precios
+            }
+            contador += 1
+
+        except Exception as e:
+            print(f"Error con {producto}: {e}")
+            mapa_agricola[producto] = {
+                "Producto": producto,
+                "Semanas": semanas,
+                "Precios": precios
+            }
+
+            continue
+
+    return list(mapa_agricola.values())
+
+
   
     
                 
