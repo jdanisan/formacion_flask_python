@@ -141,6 +141,22 @@ def formatear_semana(texto):
         return f"{num_semana.group(1)}ª semana de {anio.group(1)}"
     else:
         return None  # Indicar que no es válido      
+
+def formatear_precio(texto):
+    """
+    Limpia y convierte un texto de precio a un formato estándar.
+    Devuelve None si el contenido no es válido.
+    """
+    try:
+        # Eliminar símbolos como € y convertir comas a puntos para decimales
+        texto_limpio = texto.replace('€', '').replace(',', '.').strip()
+
+        # Convertir a float para asegurar que es un número válido
+        precio = float(texto_limpio)
+        return round(precio, 2)  # Redondea a dos decimales
+    except:
+        return None  # Precio no válido
+
                     
 def obtener_datos_agricolas():
     url_base = "https://observatorioprecios.es/alimentos-frescos"
@@ -203,19 +219,27 @@ def obtener_datos_agricolas():
 
                         if "semana" in valor1.lower():
                             semana = formatear_semana(valor1)
-                            precio = valor2
-                            precio_m= valor3
+                            precio = formatear_precio(valor2)
+                            precio_m= formatear_precio(valor3)
                         else:
                             semana = formatear_semana(valor2)
-                            precio = valor1
-                            precio_m=valor3
+                            precio = formatear_precio(valor1)
+                            precio_m=formatear_precio(valor3)
 
                         if not (semana.__eq__("None")):
                             semanas.append(semana)
                         #print (semana)
+                        
+                        precio = precio if precio is not None else 0.0  # o "No disponible"
+                        precio_m = precio_m if precio_m is not None else 0.0
+                        
                         precios.append(precio)
                         precios.append(precio_m)
                         i=i+1
+                        
+                        
+                        
+                        
                 else:
                     # Modo alternativo (cuando las celdas <td> están sin <tr>)
                     celdas = tabla.find_all("td")
@@ -293,6 +317,19 @@ def precios_agricolas():
 
     return render_template('precios.html', productos=productos_filtrados)
 
+@app.route('/api/precios', methods=['GET'])
+def api_precios_agricolas():
+    producto_buscar = request.args.get('producto', '').lower()
+    datos = obtener_datos_agricolas()
+
+    if producto_buscar:
+        productos_filtrados = [producto for producto in datos if producto_buscar in producto['Producto'].lower()]
+    else:
+        productos_filtrados = datos
+
+    return jsonify(productos_filtrados)
+
+
 # Crear la base de datos si no existe
 with app.app_context():
     db.create_all()
@@ -300,3 +337,5 @@ with app.app_context():
 # Ejecutar la aplicación Flask
 if __name__ == "__main__":
     app.run(debug=True)
+    
+
