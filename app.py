@@ -64,74 +64,6 @@ def update(id):
     else:
         return render_template('update.html', task=task)
 
-# Función que hace web scraping y obtiene los datos agrícolas
-#def obtener_datos_agricolas():
-#    url = "https://observatorioprecios.es/alimentos-frescos/"  # URL para scraping
-#
-#    response = requests.get(url)
-#    response.raise_for_status()     
-#    soup = BeautifulSoup(response.text, 'html.parser')    
-#    product_refs = soup.find_all("p")
-#    products = []
-#    seleccion=["patata","acelga","calabacin","cebolla","judia-verde-plana","lechuga-romana","pimiento-verde",
-#               "tomate-redondo-liso","zanahoria","limon","manzana-golden","clementina",
-#               "naranja-tipo-navel","pera-de-agua-o-blanquilla","platano"]
-#    
-#    for p in product_refs:
-#        try:
-#            t = p.find_all("a")[0]["href"].split("/")[2]
-#            for i in range(len(seleccion)):
-#                if seleccion[i]==t: 
-#                    products.append(t)
-#        except:
-#            pass
-#    #products.pop(-1)
-#    
-#    #precios_agro=[]
-#    #semanas=[]
-#    #columns=[]
-#    #n=0
-#    #for i in range(len(products)):
-#    #    product_url=f"{url}/{products[i]}"
-#    #    table = BeautifulSoup(requests.get(product_url).text, 'html.parser').find_all("table")
-#    #    columns=table[0].find_all("th")
-#    #    if len(columns)>2:
-#    #        for n in range(len(seleccion)):
-#    #            #print(seleccion[n])
-#    #            for t in table[0]:
-#    #                try:
-#    #                    for i in range(1,len(t),3):
-#    #                        t2 = t.find_all("td")[i]
-#    #                        precios_agro.append(t2.contents)
-##
-#    #                    for i2 in range(0,len(t),3):
-#    #                        t3= t.find_all("td")[i2]
-#    #                        semanas.append(t3.contents)    
-#    #                except:
-#    #                    
-#    
-#    precios_agro=[]
-#    semanas=[]
-#    columns=[]
-#    n=0
-#    for i in range(len(products)):
-#        product_url=f"{url}/{products[i]}"
-#        table = BeautifulSoup(requests.get(product_url).text, 'html.parser').find_all("table")
-#        columns=table[0].find_all("th")
-#        if len(columns)>2:
-#            for n in range(len(seleccion)):
-#                print(seleccion[n])
-#                for t in table[0]:
-#                    try:
-#                        for i in range(1,len(t),3):
-#                            t2 = t.find_all("td")[i]
-#                            precios_agro.append(t2.contents)
-#
-#                        for i2 in range(0,len(t),3):
-#                            t3= t.find_all("td")[i2]
-#                            semanas.append(t3.contents)    
-#                    except:
-#                        pass
 import re
 def formatear_semana(texto):
     num_semana = re.search(r'(\d+)', texto)
@@ -300,10 +232,6 @@ def precios_agricolas():
     print (datos)
     print('se estan escribiendo datos')
 
-    # Verifica si no obtuviste datos
-    #if "error" in datos:
-    #    return jsonify(datos), 500  # Esto devolvería un mensaje de error si no se pudieron obtener los productos
-#
     # Filtrar los productos si se proporcionó un término de búsqueda
     if producto_buscar:
         print('Busqueda ejecutandose')
@@ -338,4 +266,7 @@ with app.app_context():
 if __name__ == "__main__":
     app.run(debug=True)
     
-
+#ruta para comprobacion de render
+@app.route("/health")
+def health():
+    return "OK", 200
