@@ -24,7 +24,7 @@ def formatear_precio(texto):
 
 # Web scraping para obtener los precios agrícolas
 def obtener_datos_agricolas():
-    url_base = "https://observatorioprecios.es/alimentos-frescos"
+    url_base = "https://observatorioprecios.es/mercados-alimentos-hortalizas/"
     response = requests.get(url_base)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
