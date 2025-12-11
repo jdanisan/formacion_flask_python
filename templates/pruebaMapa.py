@@ -59,7 +59,6 @@ def update(id):
     else:
         return render_template('update.html', task=task)
 
-# Función de scraping estructurado
 def obtener_datos_agricolas():
     url_base = "https://observatorioprecios.es/alimentos-frescos"
     seleccion = [
@@ -73,58 +72,46 @@ def obtener_datos_agricolas():
     soup = BeautifulSoup(response.text, 'html.parser')
     
     productos_scrapeados = {}
-    enlaces_productos = []
+    enlaces_productos = set()  # evitar duplicados
 
     # Buscar enlaces a productos seleccionados
-    for p in soup.find_all("p"):
-        try:
-            href = p.find_all("a")[0]["href"]
-            nombre_producto = href.split("/")[2]
-            if nombre_producto in seleccion:
-                enlaces_productos.append(nombre_producto)
-        except:
-            continue
+    for a in soup.find_all("a", href=True):
+        partes = a["href"].split("/")
+        if len(partes) >= 3:
+            nombre = partes[2]
+            if nombre in seleccion:
+                enlaces_productos.add(nombre)
 
     # Scraping de cada producto
     for producto in enlaces_productos:
         url_producto = f"{url_base}/{producto}"
-        #url_producto="https://observatorioprecios.es/alimentos-frescos/patata"
         
         html_producto = requests.get(url_producto).text
         soup_producto = BeautifulSoup(html_producto, 'html.parser')
-        tabla = soup_producto.find("table")
+
+        tabla = soup_producto.select_one("table")
         if not tabla:
             continue
 
         productos_scrapeados[producto] = {}
 
-        for fila in tabla.find_all("tr")[1:]:
+        filas = tabla.find_all("tr")[1:]  # saltar encabezado
+
+        for fila in filas:
             celdas = fila.find_all("td")
-            if len(celdas) >= 2:
-                semana = celdas[0].text.strip()
-                precio = celdas[1].text.strip().replace(",", ".")
-                try:
-                    productos_scrapeados[producto][semana] = float(precio)
-                except:
-                    productos_scrapeados[producto][semana] = None
+            if len(celdas) < 3:
+                continue
+
+            semana = celdas[0].text.strip()
+            precio_p = celdas[1].text.strip().replace(",", ".")
+            precio_m = celdas[2].text.strip().replace(",", ".")
+
+            productos_scrapeados[producto][semana] = {
+                "precio_p": float(precio_p) if precio_p else None,
+                "precio_m": float(precio_m) if precio_m else None
+            }
 
     return productos_scrapeados
-
-# Ruta para mostrar precios agrícolas
-@app.route('/precios', methods=['GET'])
-def precios_agricolas():
-    producto_buscar = request.args.get('producto', '').lower()
-    datos = obtener_datos_agricolas()
-
-    if producto_buscar:
-        datos_filtrados = {k: v for k, v in datos.items() if producto_buscar in k.lower()}
-    else:
-        datos_filtrados = datos
-
-    if not datos_filtrados:
-        return render_template('precios.html', productos={}, mensaje="No se encontraron productos que coincidan con la búsqueda.")
-
-    return render_template('precios.html', productos=datos_filtrados)
 
 # Crear la base de datos
 with app.app_context():
