@@ -61,7 +61,7 @@ def update(id):
 
 # Función de scraping estructurado
 def obtener_datos_agricolas():
-    url_base = "https://observatorioprecios.es/alimentos-frescos"
+    url_base = "https://observatorioprecios.es/alimentos-frescos/"
     seleccion = [
         "patata", "acelga", "calabacin", "cebolla", "judia-verde-plana", "lechuga-romana",
         "pimiento-verde", "tomate-redondo-liso", "zanahoria", "limon", "manzana-golden",
