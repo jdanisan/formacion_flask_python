@@ -87,7 +87,9 @@ def obtener_datos_agricolas():
 
     # Scraping de cada producto
     for producto in enlaces_productos:
-        url_producto = f"{url_base}/{producto}"
+        #url_producto = f"{url_base}/{producto}"
+        url_producto="https://observatorioprecios.es/alimentos-frescos/patata"
+        
         html_producto = requests.get(url_producto).text
         soup_producto = BeautifulSoup(html_producto, 'html.parser')
         tabla = soup_producto.find("table")
