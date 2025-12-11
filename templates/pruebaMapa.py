@@ -62,54 +62,53 @@ def update(id):
 def obtener_datos_agricolas():
     url_base = "https://observatorioprecios.es/alimentos-frescos"
     seleccion = [
-        "patata", "acelga", "calabacin", "cebolla", "judia-verde-plana", "lechuga-romana",
-        "pimiento-verde", "tomate-redondo-liso", "zanahoria", "limon", "manzana-golden",
-        "clementina", "naranja-tipo-navel", "pera-de-agua-o-blanquilla", "platano"
+        "patata", "acelga", "calabacin", "cebolla", "judia-verde-plana",
+        "lechuga-romana", "pimiento-verde", "tomate-redondo-liso",
+        "zanahoria", "limon", "manzana-golden", "clementina",
+        "naranja-tipo-navel", "pera-de-agua-o-blanquilla", "platano",
     ]
 
     response = requests.get(url_base)
     response.raise_for_status()
-    soup = BeautifulSoup(response.text, 'html.parser')
-    
+    soup = BeautifulSoup(response.text, "html.parser")
+
     productos_scrapeados = {}
-    enlaces_productos = set()  # evitar duplicados
+    enlaces_productos = []
 
-    # Buscar enlaces a productos seleccionados
-    for a in soup.find_all("a", href=True):
-        partes = a["href"].split("/")
-        if len(partes) >= 3:
-            nombre = partes[2]
-            if nombre in seleccion:
-                enlaces_productos.add(nombre)
+    # ✔ Buscar enlaces correctamente
+    for a in soup.select(".wrapper a"):
+        href = a.get("href", "")
+        nombre_producto = href.strip("/").split("/")[-1]
+        if nombre_producto in seleccion:
+            enlaces_productos.append(nombre_producto)
 
-    # Scraping de cada producto
+    # ✔ Scraping de cada producto
     for producto in enlaces_productos:
         url_producto = f"{url_base}/{producto}"
-        
         html_producto = requests.get(url_producto).text
-        soup_producto = BeautifulSoup(html_producto, 'html.parser')
+        soup_producto = BeautifulSoup(html_producto, "html.parser")
 
-        tabla = soup_producto.select_one("table")
+        # ✔ Encontrar la tabla correcta
+        tabla = None
+        for t in soup_producto.find_all("table"):
+            if t.find("thead") and t.find("tbody"):
+                tabla = t
+                break
+
         if not tabla:
             continue
 
         productos_scrapeados[producto] = {}
 
-        filas = tabla.find_all("tr")[1:]  # saltar encabezado
-
-        for fila in filas:
+        for fila in tabla.find_all("tr")[1:]:
             celdas = fila.find_all("td")
-            if len(celdas) < 3:
-                continue
-
-            semana = celdas[0].text.strip()
-            precio_p = celdas[1].text.strip().replace(",", ".")
-            precio_m = celdas[2].text.strip().replace(",", ".")
-
-            productos_scrapeados[producto][semana] = {
-                "precio_p": float(precio_p) if precio_p else None,
-                "precio_m": float(precio_m) if precio_m else None
-            }
+            if len(celdas) >= 2:
+                semana = celdas[0].text.strip()
+                precio = celdas[1].text.strip().replace(",", ".")
+                try:
+                    productos_scrapeados[producto][semana] = float(precio)
+                except:
+                    productos_scrapeados[producto][semana] = None
 
     return productos_scrapeados
 
